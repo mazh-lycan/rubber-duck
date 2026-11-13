@@ -1,0 +1,9 @@
+{
+  "chainId": 421614,
+  "rpcUrl": "https://sepolia-rollup.arbitrum.io/rpc",
+  "address": "",
+  "validation": "",
+  "desk": "",
+  "explorer": "https://sepolia.arbiscan.io",
+  "ducks": []
+}

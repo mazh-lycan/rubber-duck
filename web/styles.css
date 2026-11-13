@@ -1,0 +1,223 @@
+:root {
+  --ink: #241c14;
+  --paper: #fff8ee;
+  --line: #e4d3b8;
+  --stamp: #8d3a2e;
+  --muted: #6d5b48;
+  color: var(--ink);
+  background: #c6a36e;
+  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(900px 420px at 0% -10%, rgba(255, 248, 238, 0.45), transparent 60%),
+    linear-gradient(#e6d2ae, #c6a36e 42%, #b08a5e);
+}
+
+a { color: inherit; }
+
+.top {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 28px 20px 8px;
+}
+
+.mark {
+  font-size: 1.7rem;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.lede {
+  max-width: 38rem;
+  margin: 8px 0 0;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 18px 20px 48px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.stack { display: grid; gap: 16px; }
+
+.card, .panel {
+  background: var(--paper);
+  border: 1px solid rgba(36, 28, 20, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(70, 42, 16, 0.12);
+}
+
+.card {
+  display: block;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.card img, .hero img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #efe4d2;
+}
+
+.card div, .hero-copy { padding: 14px 16px 16px; }
+
+.card h2, .hero h1 {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.card p, .prompt {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: 0;
+  overflow: hidden;
+}
+
+.hero img { height: 100%; aspect-ratio: auto; min-height: 280px; }
+
+.kicker {
+  margin: 0 0 6px;
+  color: var(--stamp);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.meta {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.meta span {
+  display: block;
+  color: var(--muted);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+button, .button {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button.ghost, .button.ghost {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.note, .status {
+  margin: 0 0 14px;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.status { color: var(--stamp); }
+
+pre {
+  margin: 14px 0 0;
+  padding: 12px;
+  overflow: auto;
+  border-radius: 12px;
+  background: #f3eadc;
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.85rem;
+}
+
+.tools { padding: 16px 18px 18px; }
+
+.tools h2 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.tools label {
+  display: block;
+  margin-top: 12px;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tools input, .tools textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+@media (max-width: 720px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero img { min-height: 0; aspect-ratio: 1; }
+}
