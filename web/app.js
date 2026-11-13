@@ -176,8 +176,16 @@ async function catalogFromChain(ducks, config) {
   } catch {
     const listed = config.ducks || [];
     if (listed.length === 0) return null;
+    const local = await localCatalog();
     const found = [];
-    for (const item of listed) found.push(await duckById(ducks, item.slug, item.agentId));
+    for (const item of listed) {
+      if (!item.agentId) {
+        const card = local.find((duck) => duck.slug === item.slug);
+        if (card) found.push(card);
+        continue;
+      }
+      found.push(await duckById(ducks, item.slug, item.agentId));
+    }
     return found;
   }
 }

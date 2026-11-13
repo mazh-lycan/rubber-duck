@@ -7,5 +7,9 @@
   "desk": "0x486aE6681800E679B22a3B772cC3D95632e88C95",
   "deployBlock": 328780051,
   "explorer": "https://sepolia.arbiscan.io",
-  "ducks": []
+  "ducks": [
+    { "slug": "minecraft", "agentId": "" },
+    { "slug": "frog", "agentId": "" },
+    { "slug": "swimsuit", "agentId": "" }
+  ]
 }
