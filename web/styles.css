@@ -70,7 +70,7 @@ main {
   text-decoration: none;
 }
 
-.card img, .hero img {
+.card img {
   display: block;
   width: 100%;
   aspect-ratio: 1;
@@ -97,12 +97,35 @@ main {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
-  gap: 0;
-  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.hero img { height: 100%; aspect-ratio: auto; min-height: 280px; }
+.hero-photo {
+  display: flex;
+  justify-content: center;
+  background: #efe4d2;
+}
+
+.hero-photo img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: min(420px, 46vh);
+  object-fit: contain;
+}
+
+.hero-talk {
+  padding: 16px 18px 8px;
+  border-top: 1px solid var(--line);
+}
+
+.story {
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
 
 .kicker {
   margin: 0 0 6px;
@@ -188,12 +211,12 @@ pre {
 
 .tools { padding: 16px 18px 18px; }
 
-.tools h2 {
+.tools h2, .hero-talk h2 {
   margin: 0 0 8px;
   font-size: 1.35rem;
 }
 
-.tools label {
+.tools label, .hero-talk label {
   display: block;
   margin-top: 12px;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
@@ -202,7 +225,7 @@ pre {
   text-transform: uppercase;
 }
 
-.tools input, .tools textarea {
+.tools input, .tools textarea, .hero-talk input, .hero-talk textarea {
   display: block;
   width: 100%;
   margin-top: 4px;
@@ -218,6 +241,13 @@ pre {
 }
 
 @media (max-width: 720px) {
-  .hero { grid-template-columns: 1fr; }
-  .hero img { min-height: 0; aspect-ratio: 1; }
+  .top { padding: 16px 16px 4px; }
+  .mark { font-size: 1.45rem; }
+  .lede { font-size: 0.92rem; }
+  main { padding: 12px 12px 32px; }
+  .hero-photo img { max-height: 42vh; }
+  .hero-talk, .hero-copy, .tools { padding-left: 14px; padding-right: 14px; }
+  .hero h1 { font-size: 1.4rem; }
+  .actions { align-items: stretch; }
+  .actions button, .actions .button { text-align: center; }
 }

@@ -507,7 +507,7 @@ function replyText(output, question) {
   return String(generated || "").replace(question, "").trim();
 }
 
-function chatPanel(duck) {
+function chatPanel(duck, embedded = false) {
   const description = duck.registration?.description || "You are a rubber duck on a desk.";
   const status = el("p", { class: "prompt" }, [
     "This chat runs in your browser. The first message downloads a small model. GitHub does not run it, and there is no API key.",
@@ -542,7 +542,7 @@ function chatPanel(duck) {
       talk.disabled = false;
     }
   });
-  return el("section", { class: "panel tools" }, [
+  return el(embedded ? "div" : "section", { class: embedded ? "hero-talk" : "panel tools" }, [
     el("p", { class: "kicker" }, ["Talk"]),
     el("h2", {}, [duck.registration?.name || duck.slug]),
     status,
@@ -586,11 +586,12 @@ function renderDuck(config, duck) {
   if (line) facts.push(fact("Attach as", line));
 
   const section = el("section", { class: "panel hero" }, [
-    duckImage(duck.slug, duck.registration),
+    el("div", { class: "hero-photo" }, [duckImage(duck.slug, duck.registration)]),
+    chatPanel(duck, true),
     el("div", { class: "hero-copy" }, [
       el("p", { class: "kicker" }, ["Desk agent"]),
       el("h1", {}, [name]),
-      el("p", { class: "prompt" }, [duck.registration?.description || ""]),
+      el("p", { class: "prompt story" }, [duck.registration?.description || ""]),
       el("ul", { class: "meta" }, facts),
       el("div", { class: "actions" }, actions),
       el("pre", {}, [pretty]),
@@ -599,7 +600,6 @@ function renderDuck(config, duck) {
 
   const pieces = [el("a", { class: "back", href: "./" }, ["All ducks"]), section];
   if (config.address && duck.agentId) pieces.push(agentTools(config, duck));
-  pieces.push(chatPanel(duck));
   app.replaceChildren(el("div", { class: "stack" }, pieces));
 }
 
