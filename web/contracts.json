@@ -8,8 +8,17 @@
   "deployBlock": 328780051,
   "explorer": "https://sepolia.arbiscan.io",
   "ducks": [
-    { "slug": "minecraft", "agentId": "" },
-    { "slug": "frog", "agentId": "" },
-    { "slug": "swimsuit", "agentId": "" }
+    {
+      "slug": "minecraft",
+      "agentId": "1"
+    },
+    {
+      "slug": "frog",
+      "agentId": "2"
+    },
+    {
+      "slug": "swimsuit",
+      "agentId": "3"
+    }
   ]
 }

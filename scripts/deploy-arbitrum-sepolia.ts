@@ -164,7 +164,11 @@ const validationAddress = ethers.getAddress(
 if (!existingValidation) console.log("validation:", validationAddress);
 
 const paired: { slug: string; agentId: string }[] = [];
-const known = new Map((prior.ducks || []).map((duck) => [duck.slug, BigInt(duck.agentId)]));
+const known = new Map(
+  (prior.ducks || [])
+    .filter((duck) => duck.agentId)
+    .map((duck) => [duck.slug, BigInt(duck.agentId)]),
+);
 
 for (const slug of catalog) {
   const metadataPath = join(root, "metadata", `${slug}.json`);
