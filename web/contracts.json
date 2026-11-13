@@ -1,9 +1,11 @@
 {
   "chainId": 421614,
   "rpcUrl": "https://sepolia-rollup.arbitrum.io/rpc",
-  "address": "",
-  "validation": "",
-  "desk": "",
+  "address": "0x2d154ba1647Cac3b79f9cf70C41d8C0cd4EA6B02",
+  "identity": "0x2d154ba1647Cac3b79f9cf70C41d8C0cd4EA6B02",
+  "validation": "0x431970a3BEa549D0aEc0e0892ffc939b1780f4E9",
+  "desk": "0x486aE6681800E679B22a3B772cC3D95632e88C95",
+  "deployBlock": 328780051,
   "explorer": "https://sepolia.arbiscan.io",
   "ducks": []
 }
