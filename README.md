@@ -66,15 +66,17 @@ Copy `.env.example` to `.env`. `DEPLOYER_PRIVATE_KEY` needs a little Arbitrum Se
 npm run deploy:arbitrum-sepolia
 ```
 
-This deploys `DuckAgents` and `ValidationRegistry`, pairs every slug, and writes both addresses into [web/contracts.json](web/contracts.json). `imageCid` becomes `ipfs://<cid>/<file>` in the registration. An empty `imageCid` uses `${PUBLIC_BASE_URL}/ducks/<slug>.jpg`.
+Run it from this repo. It writes [web/contracts.json](web/contracts.json) here. `imageCid` becomes `ipfs://<cid>/<file>` in the registration. An empty `imageCid` uses `${PUBLIC_BASE_URL}/ducks/<slug>.jpg`.
 
-Run it again with `DUCK_AGENTS_ADDRESS` and `VALIDATION_REGISTRY_ADDRESS` set when the contracts already exist. Paired ducks are updated with `setAgentURI`, so a CID you add later replaces the image. New slugs are paired. The signer must be the desk owner.
+The identity registry `0x2d154ba1647Cac3b79f9cf70C41d8C0cd4EA6B02` and validation registry `0x431970a3BEa549D0aEc0e0892ffc939b1780f4E9` are already on Arbitrum Sepolia, deployed in block `328780051` by `0x486aE6681800E679B22a3B772cC3D95632e88C95`. With those addresses in `.env`, the script does not deploy a second pair. It registers each slug on that identity with `register`, or refreshes an existing duck with `setAgentURI`, then records `identity`, `validation`, `desk`, `deployBlock`, and the slug list in `web/contracts.json`.
+
+Leave `DUCK_AGENTS_ADDRESS` empty to deploy `DuckAgents` instead. That contract pairs slugs with `pair` and keeps the slug on chain. A later run updates paired ducks with `setAgentURI`. The signer must be the desk owner.
 
 Commit `web/contracts.json` so the published page can find the contracts.
 
 ## GitHub Pages
 
-[.github/workflows/pages.yml](.github/workflows/pages.yml) publishes `web/` plus a copy of `metadata/` on every push to `main` of [mazh-lycan/rubber-duck](https://github.com/mazh-lycan/rubber-duck). In the repo settings, set Pages to deploy from GitHub Actions. The tag URL is `https://mazh-lycan.github.io/rubber-duck/#<slug>`. The GitHub repo is empty until that first push.
+[.github/workflows/pages.yml](.github/workflows/pages.yml) publishes `web/` plus a copy of `metadata/` on every push to `main` of [mazh-lycan/rubber-duck](https://github.com/mazh-lycan/rubber-duck). In the repo settings, set Pages to deploy from GitHub Actions. The tag URL is `https://mazh-lycan.github.io/rubber-duck/#<slug>`.
 
 ## Add a duck
 

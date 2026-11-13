@@ -85,6 +85,21 @@ if (!Array.isArray(catalog) || catalog.length === 0) {
   throw new Error("metadata/catalog.json needs at least one slug.");
 }
 
+const contractsPath = join(root, "web/contracts.json");
+
+type PriorFile = {
+  validation?: string;
+  deployBlock?: number;
+  ducks?: { slug: string; agentId: string }[];
+};
+
+let prior: PriorFile = {};
+try {
+  prior = JSON.parse(await readFile(contractsPath, "utf8")) as PriorFile;
+} catch {
+  prior = {};
+}
+
 async function deployAgents() {
   try {
     const deployed = await ethers.deployContract("DuckAgents", [], await feeOverrides());
@@ -113,21 +128,43 @@ async function deployValidation(identity: string) {
   }
 }
 
-const existingAddress = process.env.DUCK_AGENTS_ADDRESS?.trim();
-const agents = existingAddress
-  ? await ethers.getContractAt("DuckAgents", existingAddress)
-  : await deployAgents();
-if (!existingAddress) console.log("deployed:", await agents.getAddress());
+async function supportsSlugLookup(address: string) {
+  const probe = new ethers.Contract(
+    address,
+    ["function tokenIdFor(string) view returns (uint256)"],
+    ethers.provider,
+  );
+  try {
+    await probe.tokenIdFor.staticCall("minecraft");
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-const contractAddress = ethers.getAddress(await agents.getAddress());
-const existingValidation = process.env.VALIDATION_REGISTRY_ADDRESS?.trim();
-const validation = existingValidation
-  ? await ethers.getContractAt("ValidationRegistry", existingValidation)
-  : await deployValidation(contractAddress);
-const validationAddress = ethers.getAddress(await validation.getAddress());
+const identityAbi = [
+  "function register(string agentURI) returns (uint256)",
+  "function setAgentURI(uint256 agentId, string newURI)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+];
+
+const existingAddress = process.env.DUCK_AGENTS_ADDRESS?.trim();
+const slugLookup = existingAddress ? await supportsSlugLookup(existingAddress) : true;
+let contractAddress = existingAddress ? ethers.getAddress(existingAddress) : "";
+if (!contractAddress) {
+  const agents = await deployAgents();
+  contractAddress = ethers.getAddress(await agents.getAddress());
+  console.log("deployed:", contractAddress);
+}
+const identity = new ethers.Contract(contractAddress, identityAbi, deployer);
+const existingValidation = process.env.VALIDATION_REGISTRY_ADDRESS?.trim() || prior.validation?.trim();
+const validationAddress = ethers.getAddress(
+  existingValidation || (await (await deployValidation(contractAddress)).getAddress()),
+);
 if (!existingValidation) console.log("validation:", validationAddress);
 
 const paired: { slug: string; agentId: string }[] = [];
+const known = new Map((prior.ducks || []).map((duck) => [duck.slug, BigInt(duck.agentId)]));
 
 for (const slug of catalog) {
   const metadataPath = join(root, "metadata", `${slug}.json`);
@@ -136,35 +173,65 @@ for (const slug of catalog) {
   await access(imagePath);
   const source = JSON.parse(await readFile(metadataPath, "utf8")) as Registration;
 
-  const already = await agents.tokenIdFor(slug);
+  if (slugLookup) {
+    const ducks = await ethers.getContractAt("DuckAgents", contractAddress);
+    const already = await ducks.tokenIdFor(slug);
+    if (already !== 0n) {
+      const uri = agentURI(source, slug, already, contractAddress);
+      await send(slug, (fees) => ducks.setAgentURI(already, uri, fees));
+      console.log(`${slug}: updated agent ${already}`);
+    } else {
+      const agentId = await ducks.nextAgentId();
+      const uri = agentURI(source, slug, agentId, contractAddress);
+      await send(slug, (fees) => ducks.pair(slug, uri, fees));
+      console.log(`${slug}: paired as agent ${agentId}`);
+    }
+    const agentId = await ducks.tokenIdFor(slug);
+    console.log(`  tag: ${baseUrl}/#${slug}`);
+    paired.push({ slug, agentId: agentId.toString() });
+    continue;
+  }
+
+  const already = known.get(slug) ?? 0n;
   if (already !== 0n) {
     const uri = agentURI(source, slug, already, contractAddress);
-    await send(slug, (fees) => agents.setAgentURI(already, uri, fees));
+    await send(slug, (fees) => identity.setAgentURI(already, uri, fees));
     console.log(`${slug}: updated agent ${already}`);
     console.log(`  tag: ${baseUrl}/#${slug}`);
     paired.push({ slug, agentId: already.toString() });
     continue;
   }
 
-  const agentId = await agents.nextAgentId();
+  const agentId = await identity.register.staticCall(agentURI(source, slug, 0n, contractAddress));
   const uri = agentURI(source, slug, agentId, contractAddress);
-  await send(slug, (fees) => agents.pair(slug, uri, fees));
-  console.log(`${slug}: paired as agent ${agentId}`);
+  await send(slug, (fees) => identity.register(uri, fees));
+  console.log(`${slug}: registered as agent ${agentId}`);
   console.log(`  tag: ${baseUrl}/#${slug}`);
   paired.push({ slug, agentId: agentId.toString() });
 }
+
+const desk = slugLookup
+  ? ethers.getAddress(await (await ethers.getContractAt("DuckAgents", contractAddress)).desk())
+  : ethers.getAddress(deployer.address);
+const deployBlock = existingAddress
+  ? prior.deployBlock || (await ethers.provider.getBlockNumber())
+  : await ethers.provider.getBlockNumber();
 
 const out = {
   chainId: ARBITRUM_SEPOLIA,
   rpcUrl: process.env.ARBITRUM_SEPOLIA_RPC_URL || "https://sepolia-rollup.arbitrum.io/rpc",
   address: contractAddress,
+  identity: contractAddress,
   validation: validationAddress,
-  desk: ethers.getAddress(await agents.desk()),
+  desk,
+  deployBlock,
   explorer: "https://sepolia.arbiscan.io",
   ducks: paired,
 };
 
-const target = join(root, "web/contracts.json");
-await writeFile(target, JSON.stringify(out, null, 2) + "\n");
-console.log("wrote", target);
+await writeFile(contractsPath, JSON.stringify(out, null, 2) + "\n");
+console.log("identity:  ", out.identity);
+console.log("validation:", out.validation);
+console.log("deployBlock:", out.deployBlock);
+console.log("wrote", contractsPath);
 console.log("https://sepolia.arbiscan.io/address/" + contractAddress);

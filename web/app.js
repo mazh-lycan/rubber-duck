@@ -131,29 +131,55 @@ function validationFrom(config, signer) {
   return new ethers.Contract(config.validation, VALIDATION_ABI, signer || readProvider(config));
 }
 
-async function duckFromChain(ducks, slug) {
-  const agentId = await ducks.tokenIdFor(slug);
-  if (agentId === 0n) return null;
-  const [uri, owner, storedSlug] = await Promise.all([
-    ducks.tokenURI(agentId),
-    ducks.ownerOf(agentId),
-    ducks.slugOf(agentId),
-  ]);
+async function duckById(ducks, slug, agentId) {
+  const id = BigInt(agentId);
+  const [uri, owner] = await Promise.all([ducks.tokenURI(id), ducks.ownerOf(id)]);
   return {
-    slug: storedSlug,
-    agentId: agentId.toString(),
+    slug,
+    agentId: id.toString(),
     owner,
     uri,
     registration: await readRegistration(uri),
   };
 }
 
-async function catalogFromChain(ducks) {
-  const count = Number(await ducks.slugCount());
-  const slugs = await Promise.all(Array.from({ length: count }, (_, index) => ducks.slugAt(index)));
-  const found = [];
-  for (const slug of slugs) found.push(await duckFromChain(ducks, slug));
-  return found.filter(Boolean);
+async function duckFromChain(ducks, slug, config) {
+  try {
+    const agentId = await ducks.tokenIdFor(slug);
+    if (agentId === 0n) return null;
+    const [uri, owner, storedSlug] = await Promise.all([
+      ducks.tokenURI(agentId),
+      ducks.ownerOf(agentId),
+      ducks.slugOf(agentId),
+    ]);
+    return {
+      slug: storedSlug,
+      agentId: agentId.toString(),
+      owner,
+      uri,
+      registration: await readRegistration(uri),
+    };
+  } catch {
+    const listed = (config.ducks || []).find((item) => item.slug === slug);
+    if (listed?.agentId) return duckById(ducks, slug, listed.agentId);
+    return { useLocal: true };
+  }
+}
+
+async function catalogFromChain(ducks, config) {
+  try {
+    const count = Number(await ducks.slugCount());
+    const slugs = await Promise.all(Array.from({ length: count }, (_, index) => ducks.slugAt(index)));
+    const found = [];
+    for (const slug of slugs) found.push(await duckFromChain(ducks, slug, config));
+    return found.filter((duck) => duck && !duck.useLocal);
+  } catch {
+    const listed = config.ducks || [];
+    if (listed.length === 0) return null;
+    const found = [];
+    for (const item of listed) found.push(await duckById(ducks, item.slug, item.agentId));
+    return found;
+  }
 }
 
 function registryLine(config, duck) {
@@ -589,33 +615,48 @@ async function render() {
   if (!current()) return;
 
   const onChain = Boolean(config.address);
+  const waiting = config.identity
+    ? `Identity ${config.identity} and validation ${config.validation} are on Arbitrum Sepolia. The duck tokens are not registered yet. Run npm run deploy:arbitrum-sepolia from this repo.`
+    : "These toys are not on a chain yet. Deploy the contract and the tag resolves to the token.";
   try {
     if (!onChain) {
       const ducks = await localCatalog();
       if (!current()) return;
-      const banner = "These toys are not on a chain yet. Deploy the contract and the tag resolves to the token.";
       if (!slug) {
-        renderHome(config, ducks, banner);
+        renderHome(config, ducks, waiting);
         return;
       }
       const duck = ducks.find((item) => item.slug === slug);
       if (!duck) renderMissing(slug);
       else {
         renderDuck(config, duck);
-        app.prepend(el("p", { class: "note" }, [banner]));
+        app.prepend(el("p", { class: "note" }, [waiting]));
       }
       return;
     }
 
     const ducks = contractFrom(config);
     if (!slug) {
-      const catalog = await catalogFromChain(ducks);
+      const catalog = await catalogFromChain(ducks, config);
       if (!current()) return;
+      if (!catalog) {
+        renderHome(config, await localCatalog(), waiting);
+        return;
+      }
       renderHome(config, catalog, "");
       return;
     }
-    const duck = await duckFromChain(ducks, slug);
+    const duck = await duckFromChain(ducks, slug, config);
     if (!current()) return;
+    if (duck?.useLocal) {
+      const local = (await localCatalog()).find((item) => item.slug === slug);
+      if (!local) renderMissing(slug);
+      else {
+        renderDuck(config, local);
+        app.prepend(el("p", { class: "note" }, [waiting]));
+      }
+      return;
+    }
     if (!duck) renderMissing(slug);
     else renderDuck(config, duck);
   } catch (error) {
